@@ -1,4 +1,4 @@
-%% 30 june 2016 Castellanos Aguirre, Hilina Gudeta
+%% 30 june 2016 Hilina Gudeta, Castellanos Aguirre
 %% Pocessing image from a video
 %% Surface tension 
 %% 
