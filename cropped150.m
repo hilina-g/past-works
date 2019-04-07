@@ -1,4 +1,4 @@
-%% June 22 2016 Hilina Gudeta
+%% Hilina Gudeta
 %% Pocessing wave image to automate wavelength calculation
 
 I= imread('frame150.jpg');
