@@ -1,4 +1,4 @@
-%% Hilina Gudeta July 2016
+%% Hilina Gudeta
 
 % for eth70
 openfig('Amp_gradient .fig');
