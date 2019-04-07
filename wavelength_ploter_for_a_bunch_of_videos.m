@@ -1,4 +1,4 @@
-%% 21st july 2016 Castellanos Aguirre and Hilina Gudeta
+%% 21st july 2016 Hilina Gudeta, Castellanos Aguirre
 %% Pocessing image from a video
 %% Surface tension project
 %% 
