@@ -1,4 +1,4 @@
-%% 14th July 2016 Castellanos Aguirre and Hilina Gudeta
+%% 14th July 2016 Hilina Gudeta, Castellanos Aguirre
 %% Pocessing image from a video
 %% Plot the waves of every frame 
 %% Surface tension project 
