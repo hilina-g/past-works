@@ -1,4 +1,5 @@
-%% 1 importing videos from a folder of videos named sequentially
+%% Hilina Gudeta
+%% importing videos from a folder of videos named sequentially
 
 files = dir('C:\Users\hilina\Documents\MATLAB*.m4v');
 file = files';
