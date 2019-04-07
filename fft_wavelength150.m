@@ -1,4 +1,4 @@
-%% Hilina Gudeta, Castellanos Aguirre June 27th 2016
+%% Hilina Gudeta, Castellanos Aguirre
 %% Finding Wavelength
 %% Surface tension 
 
