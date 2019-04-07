@@ -1,0 +1,176 @@
+%% 1 importing videos from a folder of videos named sequentially
+
+files = dir('C:\Users\hilina\Documents\MATLAB*.m4v');
+file = files';
+delete video_frames2/*.jpg
+video = VideoReader('C:\Users\hilina\Documents\MATLAB\DYN_BT_11.7_G50k_4.5v_SR12k_No weight_6.m4v'); % reads the video,give the file name
+
+%% 2 count # frames
+first_NumFr = video.NumberOfFrames; % Tells you the number of frames that have been taken from the video
+fps = 30; % Frames per second of the camera
+%Fs = 1200; % Sampling frequency: (data points or pixels) / (width);
+
+%% 3 Find all frames in video and write them to a folder video_frames2/frame#.jpg
+% Extract frames from video
+
+for img = 1: first_NumFr
+    FrameN = strcat('frame', num2str(img),'.jpg'); % Order the frames in a horizontal vector and give them the file format jpg
+    n = read(video,img); %get the values of each frame NumFr
+    imwrite(n,['video_frames2/frame',sprintf('%03d',img),'.jpg']);
+end
+% deleting frames in between
+for i = 1:first_NumFr
+    file_to_delete = ['video_frames2/' 'frame', sprintf('%03d',i),'.jpg'];
+    if(mod(i,10) == 0)
+        disp('Nothing');
+    else
+        delete(file_to_delete);
+    end
+end
+fls = dir('video_frames2');
+NumFr = length(fls)-2;
+A_temp=dir('./video_frames2');
+% renaming frame numbers
+for i=1:NumFr
+    v1= ['video_frames2/',A_temp(i+2).name];
+    v2= ['video_frames2/frame',num2str(i),'.jpg'];
+    
+    movefile(v1,v2);
+end
+%% 4 extract the protractor lines in vector form and measure the angles
+%find the lines
+
+list_excel=zeros(NumFr,1);
+
+for im = 1:NumFr   % For loop which processes all the frames, one by one
+    %  subject_frame = imread(['video_frames2/frame', num2str(im),'.jpg']);% CREATE this file to store frames first. reads the frame
+   
+    subject_frame = imread(['video_frames2/frame', num2str(im),'.jpg']);
+    cropped_frame = imcrop( subject_frame,[700 50 1180 1700]);
+    gray_frame = rgb2gray(cropped_frame);  % Turns sup2 into image into a binary image and define the threshold value to minimize the interclass variance of the black and white
+    rotated_frame= imrotate(gray_frame, 90);
+    
+    subplot(2,2,[1,3])
+    imshow(rotated_frame)
+    BW_frame= edge(rotated_frame,'Prewitt',0.03,'nothinning');
+    [H, theta,rho]= hough(BW_frame,'ThetaResolution',0.5); %add specifications to the hough function
+    peaks=houghpeaks(H,7);
+    lines = houghlines(BW_frame,theta,rho,peaks,'FillGap',5,'MinLength',7);
+   
+    %figure, imshow(BW_frame)
+    hold on
+    max_len = 0;
+    length_store=zeros(length(lines),1);
+    length_field= zeros(length(lines),2);
+     for k = 1:length(lines) %creates all lines in a frame
+         xy = [lines(k).point1; lines(k).point2]; 
+         plot(xy(:,1),xy(:,2),'LineWidth',2,'Color','green');       
+         % Plot beginnings and ends of lines
+         plot(xy(1,1),xy(1,2),'x','LineWidth',2,'Color','yellow');
+         plot(xy(2,1),xy(2,2),'o','LineWidth',2,'Color','red');
+
+        length_store(k) = norm(lines(k).point1 - lines(k).point2);
+        length_field(k,:)= [length_store(k),k]; %stores the lines in order
+     end
+
+    length_field;
+    sorted_field= sortrows(length_field);
+    
+    
+    long_line_field_1=sorted_field(k,2); %longest line
+    long_line_field_2=sorted_field(k-1,2); %second longest line
+   
+    
+    x=lines(long_line_field_1).point1;
+    y=lines(long_line_field_1).point2;
+    
+    a=lines(long_line_field_2).point1;
+    b=lines(long_line_field_2).point2;
+    
+    first_line= [x; y];
+    second_line= [a; b];
+    plot(first_line(:,1),first_line(:,2),'LineWidth',2,'Color','red','LineStyle','--');
+    plot(second_line(:,1),second_line(:,2),'LineWidth',2,'Color','blue','LineStyle','--');
+     
+    u1=y(1)-x(1);
+    u2=y(2)-x(2);
+    if (u1<0)
+        u1=-u1;
+        u2=-u2;
+    end
+  
+    v1=b(1)-a(1);
+    v2=b(2)-a(2);
+    if (v1<0)
+        v1=-v1;
+        v2=-v2;
+    end
+    
+    u=([u1 u2 0]);
+    v=([v1 v2 0]);
+    
+    theta_u = atan2d(u2,u1);
+    theta_v = atan2d(v2,v1);
+    ThetaInDegrees = 180 - abs(theta_u - theta_v);
+
+    third_line=[a; b];
+    for lil_loop=2:length(lines)-1;
+        if abs(ThetaInDegrees) < 10 || abs(ThetaInDegrees) > 170;
+            long_line_field_2=sorted_field(length(lines) - lil_loop,2); %use the next longest line
+            a=lines(long_line_field_2).point1;
+            b=lines(long_line_field_2).point2;
+            
+            third_line=[a; b];
+
+            v1=b(1)-a(1); v2=b(2)-a(2); v=([v1 v2 0]);
+        if (v1<0)
+            v1=-v1;
+            v2=-v2;
+        end
+    
+         v=([v1 v2 0]);          
+         theta_v = atan2d(v2,v1);
+        ThetaInDegrees = 180 - abs(theta_u - theta_v);
+        end
+    end
+    plot(third_line(:,1),third_line(:,2),'LineWidth',1,'Color','black','LineStyle','-.');
+    
+    % Plot beginnings and ends of lines
+    plot(v1,v2,'LineWidth',2,'Color','black','LineStyle','--');
+    
+    % 5 store values from a loop
+    list_excel(im)= ThetaInDegrees;
+    %pause();
+   pause(0.1);
+  
+   subplot(2,2,4)
+  
+    t_boundary= (1/fps)*NumFr*10;
+    t_fr= 0: 1/fps*10: (NumFr-1)/fps*10;
+    y_angle= [list_excel(:,1)'];
+    plot(t_fr, y_angle, 'b*')
+    title('Time vs Angle Plot', 'FontSize', 18);
+    xlabel('time [s]','FontSize', 16);
+    ylabel('arm angle [theta]','FontSize', 18);
+    
+  ax= subplot(2,2,2);
+   plot(1,1)
+   title(['Angle: ', num2str(ThetaInDegrees), ' º'], 'FontSize', 40);
+   
+   set(gca,'Units','normalized');
+titleHandle = get( gca ,'Title' );
+pos  = get( titleHandle , 'position' );
+pos1 = pos - [0 1 0] ;
+set( titleHandle , 'position' , pos1 );
+
+   set ( ax, 'visible', 'off')
+   set(findall(gca, 'type', 'text'), 'visible', 'on')
+end
+list_excel;
+
+%output time
+time_output=[t_fr'];
+
+%export
+arm_angle_file = 'armangledata.xlsx';
+%xlswrite(arm_angle_file,list_excel,'Arm Angles')
